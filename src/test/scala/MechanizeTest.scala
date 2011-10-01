@@ -1,14 +1,13 @@
-package cn.orz.pascal.scala.mechanize 
+package cn.orz.pascal.scala.mechanize
 
 
-// vim: set ts=4 sw=4 et:
 import org.scalatest.WordSpec
 import org.scalatest.matchers.ShouldMatchers
 import java.net.URL
 
 class MechanaizeTest extends WordSpec with ShouldMatchers {
     "GET 'http://www.google.co.jp'" when {
-        val agent:Mechanize = new Mechanize() 
+        val agent:Mechanize = new Mechanize()
         val page:HtmlPage = agent.get("http://www.google.co.jp")
 
         page.title should be("Google")
@@ -17,7 +16,7 @@ class MechanaizeTest extends WordSpec with ShouldMatchers {
         (page.get(Class("jhp")) \ "@class").text should be("jhp")
         (page.get(Name("f")) \ "@action").text should be("/search")
         (page.get(XPath(".//center/form")) \ "@action").text should be("/search")
- 
+
         val form:HtmlForm = page.forms(0)
         form.name should be("f")
         form.method should be(Get)
@@ -25,7 +24,7 @@ class MechanaizeTest extends WordSpec with ShouldMatchers {
         form.fields_with(Class("lst"))(0).name should be("q")
         form.fields_with(Type("hidden"))(0).name should be("hl")
         form.fields_with(XPath(".//input[@type='hidden' and @value='hp']"))(0).name should be("source")
-        
+
         val input:HtmlField = form.fields_with(Name("q"))(0)
         input.value should be("")
         input.value = "Scala"
@@ -39,7 +38,7 @@ class MechanaizeTest extends WordSpec with ShouldMatchers {
     }
 
     "GET 'http://www.amazon.co.jp/'" when {
-        val agent:Mechanize = new Mechanize() 
+        val agent:Mechanize = new Mechanize()
         val page:HtmlPage = agent.get("http://www.amazon.co.jp/")
 
         page.title should be("Amazon.co.jp： 通販 - ファッション、家電から食品まで【無料配送】")
@@ -52,14 +51,40 @@ class MechanaizeTest extends WordSpec with ShouldMatchers {
         form.fields_with(Class("searchSelect"))(0).name should be("field-keywords")
         form.fields_with(Type("text"))(0).name should be("field-keywords")
         form.fields_with(XPath(".//input[@type='text' and @title='検索']"))(0).name should be("field-keywords")
- 
+
     }
 
     "GET 'http://www.ebookjapan.jp/ebj/search.asp?q=%96%B2%97%88%92%B9%82%CB%82%DE&ebj_desc=on'" when {
-        val agent:Mechanize = new Mechanize() 
+        val agent:Mechanize = new Mechanize()
         val page:HtmlPage = agent.get("http://www.ebookjapan.jp/ebj/search.asp?q=%96%B2%97%88%92%B9%82%CB%82%DE&ebj_desc=on")
         page.asXml.isInstanceOf[scala.xml.Node] should be(true)
         page.get(Id("main_line")).isInstanceOf[scala.xml.Node] should be(true)
-      } 
+      }
+
+    "GET http://www.amazon.co.jp" when {
+        val agent: Mechanize = new Mechanize()
+        val page: HtmlPage = agent.get("http://www.amazon.co.jp")
+
+        "image tags in its response" should {
+            "not be empty" in {
+                page.images.length should not be(0)
+            }
+        }
+        "help link" should {
+            "be able to jump to help page with clicking" in {
+                page.links.collect{ case a if a.text == "ヘルプ" => a }.head.click{case _ => true} match {
+                    case Some(a:HtmlPage) => {
+                        a.title should be("Amazon.co.jp ヘルプ")
+                        a.url.toString should startWith("http://www.amazon.co.jp/gp/help/customer/display.htm")
+
+                    }
+                    case _ => fail()
+                }
+            }
+        }
+
+    }
+
 }
 
+// vim: set ts=4 sw=4 et:

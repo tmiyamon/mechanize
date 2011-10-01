@@ -12,4 +12,5 @@ libraryDependencies += "net.sourceforge.htmlunit" % "htmlunit" % "2.9"
 
 libraryDependencies += "nu.validator.htmlparser" % "htmlparser" % "1.2.1"
 
+scalacOptions ++= Seq("-deprecation")
 
