@@ -82,9 +82,20 @@ class MechanaizeTest extends WordSpec with ShouldMatchers {
                 }
             }
         }
-
     }
+    "GET http://images.google.co.jp/" when {
+        val agent: Mechanize = new Mechanize()
+        val page: HtmlPage = agent.get("http://images.google.co.jp/")
 
+        "image search form" should {
+            "be found with its id" in {
+                page.formWith(Id("qbf")) match {
+                    case Some(_) => 
+                    case _ => fail()
+                }
+            }
+        }
+    }
 }
 
 // vim: set ts=4 sw=4 et:
