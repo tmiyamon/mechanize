@@ -103,8 +103,8 @@ class HtmlPage(val page:HtmlUnitPage) extends HtmlBase with HtmlPageType {
         case Name(value) => allCatch.opt(page.getFormByName(value))
         case Id(value) => allCatch.opt(page.getElementById(value).asInstanceOf[HtmlUnitForm])
         case _ => None
-    })flatMap(raw => Some(new HtmlForm(raw)))
-     
+    }) flatMap(Option(_)) flatMap( a => Option(new HtmlForm(a)))
+
     def links:List[HtmlLink] = {
         page.getAnchors.map(new HtmlLink(_)).toList
     }

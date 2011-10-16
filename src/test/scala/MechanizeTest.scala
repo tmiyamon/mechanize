@@ -1,11 +1,16 @@
 package cn.orz.pascal.scala.mechanize
 
 
-import org.scalatest.WordSpec
+import org.scalatest._
 import org.scalatest.matchers.ShouldMatchers
 import java.net.URL
 
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.webapp.WebAppContext
+
 class MechanaizeTest extends WordSpec with ShouldMatchers {
+
+
     "GET 'http://www.google.co.jp'" when {
         val agent:Mechanize = new Mechanize()
         val page:HtmlPage = agent.get("http://www.google.co.jp")
@@ -17,6 +22,7 @@ class MechanaizeTest extends WordSpec with ShouldMatchers {
         (page.get(Name("f")) \ "@action").text should be("/search")
         (page.get(XPath(".//center/form")) \ "@action").text should be("/search")
 
+
         val form:HtmlForm = page.forms(0)
         form.name should be("f")
         form.method should be(Get)
@@ -24,6 +30,17 @@ class MechanaizeTest extends WordSpec with ShouldMatchers {
         form.fields_with(Class("lst"))(0).name should be("q")
         form.fields_with(Type("hidden"))(0).name should be("hl")
         form.fields_with(XPath(".//input[@type='hidden' and @value='hp']"))(0).name should be("source")
+
+        page.formWith(Name("f")) match {
+            case Some(form) => {
+                form.name  should be("f")
+            }
+            case None => fail()
+        }
+        page.formWith(Name("not_Found")) match {
+            case Some(a) => fail()
+            case None =>
+        }
 
         val input:HtmlField = form.fields_with(Name("q"))(0)
         input.value should be("")
@@ -83,18 +100,44 @@ class MechanaizeTest extends WordSpec with ShouldMatchers {
             }
         }
     }
-    "GET http://images.google.co.jp/" when {
-        val agent: Mechanize = new Mechanize()
-        val page: HtmlPage = agent.get("http://images.google.co.jp/")
+}
 
-        "image search form" should {
-            "be found with its id" in {
-                page.formWith(Id("qbf")) match {
-                    case Some(_) => 
-                    case _ => fail()
+
+class LocalTest extends WordSpec  with ShouldMatchers {
+
+    val filename = "file:src/test/resources/test.html"
+
+    "GET %s" format(filename) when {
+        val agent: Mechanize = new Mechanize()
+        val page: HtmlPage = agent.get(filename)
+
+        "forcused on form"should {
+            "have form of id:form1" in {
+                page.formWith(Id("form1")) match {
+                    case Some(_) =>
+                    case None => fail()
+                }
+            }
+            "not have form of id:form2" in {
+                page.formWith(Id("form2")) match {
+                    case Some(_) => fail()
+                    case None =>
+                }
+            }
+            "have form of name:form1" in {
+                page.formWith(Name("form1")) match {
+                    case Some(_) =>
+                    case None => fail()
+                }
+            }
+            "not have form of name:form2" in {
+                page.formWith(Name("form2")) match {
+                    case Some(_) => fail()
+                    case None =>
                 }
             }
         }
+
     }
 }
 
